@@ -1,6 +1,7 @@
 import json
 import os
 from telethon import TelegramClient
+import sys
 
 CONFIG_FILE = "config.json"
 SESSION_FOLDER = "sessions"
@@ -17,57 +18,65 @@ def save_config(config):
     with open(CONFIG_FILE, "w") as file:
         json.dump(config, file, indent=4)
 
+
 # Helper function to add new accounts to config
 async def add_accounts_to_config(config):
     while True:
-        print("\n🆕 ახალი ანგარიშის დამატება")
-        account_name = input("შეიყვანეთ ანგარიშის სახელი (მაგ. user1): ")
-        api_id = int(input("შეიყვანეთ API ID: "))
-        api_hash = input("შეიყვანეთ API HASH: ")
+        try:
+            print("\n🆕 ახალი ანგარიშის დამატება")
+            account_name = input("შეიყვანეთ ანგარიშის სახელი (მაგ. user1): ")
+            api_id = int(input("შეიყვანეთ API ID: "))
+            api_hash = input("შეიყვანეთ API HASH: ")
 
-        session_name = input("შეიყვანეთ სესიის სახელი (მაგ. session_user1): ")
-        if not session_name:  
-            session_name = f"session_{account_name}" if account_name else "session_default"
+            session_name = input("შეიყვანეთ სესიის სახელი (მაგ. session_user1): ")
+            if not session_name:
+                session_name = f"session_{account_name}" if account_name else "session_default"
 
-        # Ensure that the session folder exists
-        if not os.path.exists(SESSION_FOLDER):
-            os.makedirs(SESSION_FOLDER)
+            # Ensure that the session folder exists
+            if not os.path.exists(SESSION_FOLDER):
+                os.makedirs(SESSION_FOLDER)
 
-        session_path = os.path.join(SESSION_FOLDER, session_name)
-        phone_number = input("შეიყვანეთ თქვენი მობილურის ნომერი (მაგ. +995595000000): ")
+            session_path = os.path.join(SESSION_FOLDER, session_name)
+            phone_number = input("შეიყვანეთ თქვენი მობილურის ნომერი (მაგ. +995595000000): ")
 
-        # Add the new account to the configuration
-        config[account_name] = {
-            "api_id": api_id,
-            "api_hash": api_hash,
-            "session_name": session_path,
-            "phone_number": phone_number
-        }
+            # Add the new account to the configuration
+            config[account_name] = {
+                "api_id": api_id,
+                "api_hash": api_hash,
+                "session_name": session_path,
+                "phone_number": phone_number
+            }
 
-        # Save configuration after adding the new account
-        save_config(config)
-        print(f"✅ ახალი ანგარიში დამატებულია: {account_name} ({session_path})")
+            # Save configuration after adding the new account
+            save_config(config)
+            print(f"✅ ახალი ანგარიში დამატებულია: {account_name} ({session_path})")
 
-        # Attempt login process after adding new account
-        client = TelegramClient(
-            session_path,
-            api_id,
-            api_hash,
-        )
+            # Attempt login process after adding new account
+            client = TelegramClient(
+                session_path,
+                api_id,
+                api_hash,
+            )
 
-        print(f"📡 Telegram API-სთან კავშირის მცდელობა... ({account_name})")
-        await client.connect()
+            print(f"📡 Telegram API-სთან კავშირის მცდელობა... ({account_name})")
+            await client.connect()
 
-        # If phone number exists, proceed with verification process
-        if phone_number:
-            if not await client.is_user_authorized():
-                print(f"⚠️ {account_name} - ვერ მოხერხდა ავტორიზაცია. გადაგზავნილია კოდი.")
-                await client.send_code_request(phone_number)
-                code = input(f"შეიყვანეთ კოდი, რომელიც გამოგიგზავნათ {phone_number}: ")
-                await client.sign_in(phone_number, code)
-                print(f"✅ {account_name} ანგარიშით ავტორიზაცია წარმატებით მოხდა!")
-            else:
-                print(f"✅ {account_name} უკვე ავტორიზებულია.")
+            # If phone number exists, proceed with verification process
+            if phone_number:
+                if not await client.is_user_authorized():
+                    print(f"⚠️ {account_name} - ვერ მოხერხდა ავტორიზაცია. გადაგზავნილია კოდი.")
+                    await client.send_code_request(phone_number)
+                    code = input(f"შეიყვანეთ კოდი, რომელიც გამოგიგზავნათ {phone_number}: ")
+                    await client.sign_in(phone_number, code)
+                    print(f"✅ {account_name} ანგარიშით ავტორიზაცია წარმატებით მოხდა!")
+                else:
+                    print(f"✅ {account_name} უკვე ავტორიზებულია.")
+        except EOFError:
+            print("Input error: The system was unable to receive input.")
+            account_name = "default_account"  # Fallback value
+        except Exception as e:
+            print(f"Error: {e}")
+            account_name = "default_account"  # Fallback value
 
         add_another = input("გსურთ კიდევ ერთი ანგარიშის დამატება? (y/n): ")
         if add_another.lower() != 'y':  # Check if the user doesn't want to add another account

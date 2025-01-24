@@ -10,3 +10,4 @@ config.py
 __pycache__
 .pyc
 project.txt
+config.txt
