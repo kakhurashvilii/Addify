@@ -1,6 +1,7 @@
 import os
 import csv
 import asyncio
+import sys
 from telethon.sync import TelegramClient
 from telethon.errors.rpcerrorlist import FloodWaitError
 from telethon.tl.functions.channels import InviteToChannelRequest
@@ -9,7 +10,8 @@ from telethon.tl.types import ChannelParticipantsSearch
 from login import login  # იმპორტირებული ავტორიზაციის ფუნქცია
 
 # Windows-ზე asyncio-ს სწორად მუშაობისთვის
-asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 # მომხმარებლების წაკითხვა CSV-დან
 def read_users_from_csv(csv_filename):
