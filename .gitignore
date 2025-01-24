@@ -6,3 +6,7 @@ __pycache__
 all_members.csv
 config.json
 last_processed_index.txt
+config.py
+__pycache__
+.pyc
+project.txt
